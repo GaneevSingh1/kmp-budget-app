@@ -1,14 +1,10 @@
 package com.budget.project.ui
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -30,8 +26,11 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+
+val pieChartColors = listOf(Color.Red, Color.Blue, Color.Green, Color.Cyan, Color.LightGray)
 
 @Composable
 fun BudgetPage(
@@ -96,17 +95,17 @@ fun BudgetContent(
     Column(
         modifier = Modifier.padding(horizontal = 10.dp)
     ) {
+
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            PieChart()
-
-            Column {
-                TimeFrameDropDown(budgetTimeFrame)
-                PieChartKeys()
-            }
+            horizontalArrangement = Arrangement.End
+        ){
+            TimeFrameDropDown(budgetTimeFrame)
         }
+
+        PieChartRow(
+            data = expenses.plus(savings).associate { Pair(it.name, it.amount.toFloat()) }
+        )
 
         Spacer(modifier = Modifier.height(20.dp))
 
@@ -131,6 +130,43 @@ fun BudgetContent(
                 title = "Savings:",
                 moneyEntries = savings
             )
+        }
+    }
+}
+
+@Composable
+fun PieChartRow(
+    data: Map<String, Float>
+) {
+    val sortedData = data.entries.sortedByDescending { it.value }
+    val topEntries = sortedData.take(4)
+    val otherEntries = sortedData.drop(4)
+    val otherTotal = otherEntries.sumOf { it.value.toDouble() }.toFloat()
+
+    val chartMap = mutableMapOf<Color, Float>()
+    val keyMap = mutableMapOf<Color, String>()
+
+    topEntries.forEachIndexed { index, entry ->
+        val color = pieChartColors[index]
+        chartMap[color] = entry.value
+        keyMap[color] = entry.key
+    }
+
+    if (otherTotal > 0f) {
+        val otherColor = pieChartColors.getOrElse(4) { Color.Gray }
+        chartMap[otherColor] = otherTotal
+        keyMap[otherColor] = "Other"
+    }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceAround,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        PieChart(chartMap)
+
+        Column {
+            PieChartKeys(keyMap)
         }
     }
 }
@@ -181,58 +217,49 @@ fun MoneyEntry(
 }
 
 @Composable
-fun PieChartKeys() {
-    PieChartKey(
-        color = Color.Red,
-        key = "Red"
-    )
-    PieChartKey(
-        color = Color.Blue,
-        key = "Blue"
-    )
-    PieChartKey(
-        color = Color.Green,
-        key = "Green"
-    )
-}
-
-@Composable
-fun PieChartKey(
-    color: Color,
-    key: String
+fun PieChartKeys(
+    data: Map<Color, String>
 ) {
-    Row {
-        Icon(
-            imageVector = Icons.Filled.Star,
-            contentDescription = "Back Button",
-            tint = color
-        )
-        Text(text = key)
+    data.forEach {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Star,
+                contentDescription = "Back Button",
+                tint = it.key
+            )
+            Text(text = it.value)
+        }
     }
 }
 
 @Composable
-fun PieChart() {
-    Canvas(
-        modifier = Modifier.size(200.dp),
-        onDraw = {
+fun PieChart(
+    data: Map<Color, Float>,
+    modifier: Modifier = Modifier.size(200.dp)
+) {
+    val totalAmount = data.values.sum()
+    val normalizedData = data.mapValues { (_, amount) ->
+        amount / totalAmount
+    }
+
+    Canvas(modifier = modifier) {
+        var startAngle = -90f // Start from the top
+        val diameter = size.minDimension
+        val arcSize = Rect(0f, 0f, diameter, diameter)
+
+        normalizedData.forEach { (color, percentage) ->
+            val sweepAngle = percentage * 360f
             drawArc(
-                color = Color.Red,
-                startAngle = 0f,
-                sweepAngle = 90f,
+                color = color,
+                startAngle = startAngle,
+                sweepAngle = sweepAngle,
                 useCenter = true,
+                topLeft = arcSize.topLeft,
+                size = arcSize.size
             )
-            drawArc(
-                color = Color.Blue,
-                startAngle = 90f,
-                sweepAngle = 90f,
-                useCenter = true,
-            )
-            drawArc(
-                color = Color.Green,
-                startAngle = 180f,
-                sweepAngle = 90f,
-                useCenter = true,
-            )
-        })
+            startAngle += sweepAngle
+        }
+    }
 }

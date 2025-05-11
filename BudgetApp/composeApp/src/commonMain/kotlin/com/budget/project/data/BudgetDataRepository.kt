@@ -42,7 +42,10 @@ val budget2 = Budget(
     timeFrame = TimeFrame.FORTNIGHTLY,
     expenses = listOf(
         MoneyEntry(name = "Fuel", amount = 500.0, timeFrame = TimeFrame.MONTHLY, isEnabled = true),
-        MoneyEntry(name = "Food", amount = 200.0, timeFrame = TimeFrame.MONTHLY, isEnabled = false)
+        MoneyEntry(name = "Food", amount = 200.0, timeFrame = TimeFrame.MONTHLY, isEnabled = false),
+        MoneyEntry(name = "Drinks", amount = 300.0, timeFrame = TimeFrame.MONTHLY, isEnabled = false),
+        MoneyEntry(name = "ran1", amount = 100.0, timeFrame = TimeFrame.MONTHLY, isEnabled = false),
+        MoneyEntry(name = "rand2", amount = 100.0, timeFrame = TimeFrame.MONTHLY, isEnabled = false)
     ),
     incomes = listOf(
         MoneyEntry(name = "EROAD", amount = 500.0, timeFrame = TimeFrame.MONTHLY, isEnabled = true)
