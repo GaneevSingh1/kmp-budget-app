@@ -1,6 +1,8 @@
 package com.budget.project.ui
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,6 +13,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Star
@@ -36,6 +40,7 @@ fun BudgetPage(
     viewModel: BudgetViewModel
 ){
     val budget = viewModel.getBudget(budgetId)
+    val scrollState = rememberScrollState()
 
     Scaffold (
         topBar = { BudgetTopBar(budget.name, onBackPressed) },
@@ -43,10 +48,9 @@ fun BudgetPage(
         Column (
             modifier = Modifier
                 .padding(padding)
-                .fillMaxSize()
+                .verticalScroll(scrollState)
         ) {
             BudgetContent(
-                budgetName = budget.name,
                 budgetTimeFrame = budget.timeFrame,
                 incomes = budget.incomes,
                 expenses = budget.expenses,
@@ -84,7 +88,6 @@ fun BudgetTopBar(
 
 @Composable
 fun BudgetContent(
-    budgetName: String,
     budgetTimeFrame: TimeFrame,
     incomes: List<MoneyEntry>,
     expenses: List<MoneyEntry>,
@@ -108,7 +111,7 @@ fun BudgetContent(
         Spacer(modifier = Modifier.height(20.dp))
 
         Column(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxWidth()
         ) {
             MoneyEntryColumn(
                 title = "Income:",
@@ -120,6 +123,13 @@ fun BudgetContent(
             MoneyEntryColumn(
                 title = "Expenses:",
                 moneyEntries = expenses
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            MoneyEntryColumn(
+                title = "Savings:",
+                moneyEntries = savings
             )
         }
     }
