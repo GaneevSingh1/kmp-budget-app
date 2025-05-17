@@ -24,6 +24,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
@@ -39,7 +41,7 @@ fun BudgetPage(
     viewModel: BudgetViewModel
 ){
     val budget = viewModel.getBudget(budgetId)
-    val scrollState = rememberScrollState()
+    val timeFrame = remember { budget.timeFrame }
 
     Scaffold (
         topBar = { BudgetTopBar(budget.name, onBackPressed) },
@@ -47,13 +49,14 @@ fun BudgetPage(
         Column (
             modifier = Modifier
                 .padding(padding)
-                .verticalScroll(scrollState)
+                .verticalScroll(rememberScrollState())
         ) {
             BudgetContent(
-                budgetTimeFrame = budget.timeFrame,
+                budgetTimeFrame = timeFrame,
                 incomes = budget.incomes,
                 expenses = budget.expenses,
-                savings = budget.savings
+                savings = budget.savings,
+                viewModel = viewModel
             )
         }
     }
@@ -91,15 +94,15 @@ fun BudgetContent(
     incomes: List<MoneyEntry>,
     expenses: List<MoneyEntry>,
     savings: List<MoneyEntry>,
+    viewModel: BudgetViewModel
 ) {
     Column(
         modifier = Modifier.padding(horizontal = 10.dp)
     ) {
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End
-        ){
+        ) {
             TimeFrameDropDown(budgetTimeFrame)
         }
 
